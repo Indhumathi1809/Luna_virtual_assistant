@@ -8,7 +8,7 @@ import speech_recognition as sr
 app = Flask(__name__)
 
 # Input your Google API Key here
-GOOGLE_API_KEY = "AIzaSyBMvXTCa9LnfClHw36PKjrzqcE4lNxOCMI"
+GOOGLE_API_KEY = "YOUR_API_KEY"
 
 # Check if API key is provided
 if not GOOGLE_API_KEY:
