@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ask Luna</title>
+    <link rel="icon" type="image/png" href="static/hugh.jpg">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-image: url('static/bg1.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: white;
+        }
+        #darkModeButton:hover {
+            background-color: #000;
+        }
+        p, strong {
+            color: #000;
+        }
+        .dark-mode {
+            background-image: url('static/bg2.jpg');
+            background-size: cover;
+        }
+        .dark-mode h1, .dark-mode p, .dark-mode strong {
+            color: #fff;
+        }
+        .dark-mode button {
+            background-color: red;
+        }
+        .dark-mode button:hover {
+            background-color: green;
+        }
+        h1 {
+            margin-top: 40px;
+            color: blue;
+        }
+        h2 {
+            color: red;
+            letter-spacing: 3px;
+        }
+        .container {
+            max-width: 600px;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        #result {
+            margin-top: 30px;
+            text-align: left;
+        }
+        #assistant-response {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
+        }
+        .response-text {
+            padding: 10px;
+        }
+        footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #777;
+            text-align: center;
+            margin-left: 40px;
+        }
+        #logo {
+            height: 120px;
+            width: 200px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .audio-container {
+            display: flex;
+            justify-content: center;
+            margin-left:-50px !important;
+            align-items: center;
+            margin-top: 10px; /* Adjust margin as needed */
+        }
+        
+        /* Optional: Style the audio controls */
+        #audio-controls {
+            width: 100%; /* Ensure the controls span the width of the container */
+            margin-top: 10px; /* Adjust margin as needed */
+        }
+        #copy-button {
+            background-color: #28a745; /* Set the background color to green */
+            color: white; /* Set the text color to white */
+            padding: 06px ; /* Add padding */
+            border: none; /* Remove border */
+            border-radius: 5px; /* Add border-radius for rounded corners */
+            cursor: pointer; /* Change cursor to pointer on hover */
+            transition: background-color 0.3s ease; /* Smooth transition for background color */
+            margin-bottom: 10px; /* Add some margin at the bottom */
+            margin-left:350px;
+        }
+
+        #copy-button:hover {
+            background-color: #218838; /* Darken the background color on hover */
+        }
+
+      
+    </style>
+</head>
+
+<body>
+    <button id="darkModeButton" onclick="toggleDarkMode()"><i class="fas fa-moon"></i> Switch to Dark Mode</button>
+    <h1>Indhumathi 🌙</h1>
+    <h2 onclick="playAudio()">I am Luna</h2>
+    <audio id="welcomeAudio" preload="auto">
+        <source src="static/LunaIntro.mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+    <img id="logo" src="{{ url_for('static', filename='hugh.gif') }}" alt="Your Logo"><br>&nbsp
+    
+    <div class="container">
+        <div class="text-center">
+            <p class="lead">Click the button below and start speaking.</p>
+           
+            <button id="record-btn" class="btn btn-primary">Start Recording <i class="fas fa-microphone"></i> </button>
+            <div id="result" class="mt-3"></div>
+            <div class="form-group mt-3">
+                <label for="speech-text">Converted Speech:</label>
+                <textarea id="speech-text" class="form-control" rows="3" readonly></textarea>
+            </div>
+            <div id="assistant-response" class="mt-3 text-dark">
+               
+            </div>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2023 <b>Indhumathi K </b>. All rights reserved.</p>
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var greeting = getGreeting();
+            $("h1").text(greeting + " Indhumathi 🌙");
+        });
+        $("h2").on('click', function () {
+            playAudio();
+        });
+        
+        function getGreeting() {
+            var now = new Date();
+            var hour = now.getHours();
+            if (hour >= 5 && hour < 12) {
+                return "Good Morning";
+            } else if (hour >= 12 && hour < 18) {
+                return "Good Afternoon";
+            } else {
+                return "Good Evening";
+            }
+        }
+        
+        const recordBtn = document.getElementById('record-btn');
+        const speechText = document.getElementById('speech-text');
+        const assistantResponseDiv = document.getElementById('assistant-response');
+        
+        recordBtn.addEventListener('click', () => {
+            if ('webkitSpeechRecognition' in window) {
+                const recognition = new webkitSpeechRecognition();
+                recognition.lang = 'en-US';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+        
+                recognition.onstart = () => {
+                    recordBtn.innerText = 'Recording...';
+                };
+        
+                recognition.onresult = (event) => {
+                    const speechResult = event.results[0][0].transcript;
+                    recordBtn.innerText = 'Start Recording';
+                    speechText.value = speechResult;
+        
+                    fetch('/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ user_input: speechResult })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        assistantResponseDiv.innerHTML = `
+                            <h5>Assistant Luna Response:</h5>
+                             <button id="copy-button" onclick="copyText()">Copy  <i class="fa fa-copy"></i>  </button>
+               
+                            <div class="response-text">${data.assistant_response.replace(/\n/g, '<br>')}</div>
+                            <audio id="response-audio" controls autoplay>
+                                <source src="${data.audio_path}" type="audio/mp3">
+                                Your browser does not support the audio element.
+                            </audio>
+                        `;
+                        document.getElementById('response-audio').play();
+                    })
+                    .catch(error => {
+                        console.error('There has been a problem with your fetch operation:', error);
+                    });
+                };
+        
+                recognition.onerror = (event) => {
+                    recordBtn.innerText = 'Start Recording';
+                    alert('Error occurred in recognition: ' + event.error);
+                };
+        
+                recognition.onend = () => {
+                    recordBtn.innerText = 'Start Recording';
+                };
+        
+                recognition.start();
+            } else {
+                alert('Your browser does not support the Web Speech API');
+            }
+        });
+        
+        function toggleDarkMode() {
+            $("body").toggleClass("dark-mode");
+            updateDarkModeButtonText();
+        }
+        
+        function updateDarkModeButtonText() {
+            var isDarkMode = $("body").hasClass("dark-mode");
+            var buttonText = isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode";
+            $("#darkModeButton").text(buttonText);
+        }
+        
+        function playAudio() {
+            var welcomeAudio = document.getElementById('welcomeAudio');
+            welcomeAudio.play();
+        }
+        function copyText() {
+            const responseText = document.querySelector('.response-text').innerText;
+            navigator.clipboard.writeText(responseText).then(() => {
+                alert('Response text copied to clipboard');
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+        
+    </script>
+</body>
+
+</html>
